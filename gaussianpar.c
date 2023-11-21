@@ -48,7 +48,7 @@ void
 Init_Work(void)
 {
     pthread_t *children;
-    unsigned int numThreads = N / 16;
+    unsigned int numThreads = 16;
     numThreads = numThreads > 0 ? numThreads : 1;
     children = malloc(numThreads * sizeof(pthread_t));
 

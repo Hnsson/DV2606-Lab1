@@ -2,16 +2,18 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#define THREADS 4096
+#define THREADS 4
 #define KILO (1024)
 #define MEGA (1024*1024) //1 048 576
 #define MAX_ITEMS (64 *MEGA) //67 108 864
 // #define MAX_ITEMS 16
 #define swap(v, a, b) {unsigned tmp; tmp=v[a]; v[a]=v[b]; v[b]=tmp;}
 
-static int *v;
+// pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+static int *v; 
+// int global_thread = 0; //Starts at 1, because the thread from main is the first
 
-struct threadArgs
+struct threadArgs 
 {
     int low;
     int high;
@@ -44,16 +46,16 @@ static int partition(int *v, int low, int high, int pivot_index)
     pivot_index = low;
     low++;
 
-    while (low <= high)
+    while (low <= high) 
     {
-        if (v[low] <= v[pivot_index])
+        if (v[low] <= v[pivot_index]) 
             low++;
         else if (v[high] > v[pivot_index])
             high--;
         else
             swap(v, low, high);
     }
-
+    
     if (high != pivot_index)
         swap(v, pivot_index, high);
 
@@ -63,7 +65,7 @@ static int partition(int *v, int low, int high, int pivot_index)
 void* quick_sort(void* arguments)
 {
     struct threadArgs* parent = (struct threadArgs*) arguments;
-
+    
     int pivot_index;
 
     int low = parent->low;
@@ -85,25 +87,56 @@ void* quick_sort(void* arguments)
     child_thread_2.low = pivot_index +1;
     child_thread_2.high = high;
     child_thread_2.numThreads = numThreads - child_thread_1.numThreads;
-
+    
     if(numThreads > 1) //should only create 7 new threads, 1 is already from main
     {
+        // parent->low = low;
+        // parent->high = pivot_index - 1;
+        // parent->numThreads = numThreads / 2;
+        // quick_sort((void*) parent);
         pthread_t child_1;
-
+        
         pthread_create(&child_1, NULL, quick_sort, (void*)&child_thread_1);
 
         pthread_t child_2;
-
+        
         pthread_create(&child_2, NULL, quick_sort, (void*)&child_thread_2);
 
 
         pthread_join(child_1, NULL);
         pthread_join(child_2, NULL);
+
+        // if(low < pivot_index) //parent: left side,
+        // {
+        //     parent->low = low;
+        //     parent->high = pivot_index - 1;
+        //     quick_sort((void*) parent);
+        // }
+        // if(pivot_index < high) //child: right side
+        // {
+        //     pthread_t child;
+    
+        //     struct threadArgs child_thread;
+        //     child_thread.low = pivot_index +1;
+        //     child_thread.high = high;
+        //     global_thread++;
+            
+        //     pthread_create(&child, NULL, quick_sort, (void*)&child_thread);
+        //     pthread_join(child, NULL);
+        //     // free(child_thread);
+        // }
     }
     else
     {
-        quick_sort((void *)&child_thread_1);
-        quick_sort((void*) &child_thread_2);
+            // parent->low = low;
+            // parent->high = pivot_index - 1;
+            // quick_sort((void*) parent);
+            quick_sort((void *)&child_thread_1);
+
+            // parent->low = pivot_index +1;
+            // parent->high = high;
+            // quick_sort((void*) parent);
+            quick_sort((void*) &child_thread_2);
 
     }
     return NULL;
@@ -138,15 +171,21 @@ int main(int argc, char **argv)
     args.low = 0;
     args.high = MAX_ITEMS - 1;
     args.numThreads = THREADS;
-
+    // args =  malloc(sizeof(struct threadArgs));
+    // args->low = 0;
+    // args->high = MAX_ITEMS - 1;
     pthread_t main;
 
     pthread_create(&main, NULL, quick_sort, (void*)&args);
     pthread_join(main, NULL);
 
-    sorted(v);
+    // quick_sort((void *)args);
+    // free(v);
+
+    // sorted(v);
+    // printf("%i Threads were created", global_thread);
 
     // print_array();
-    free(v);
+    // free(v);
     return 0;
 }
