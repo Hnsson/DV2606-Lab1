@@ -88,7 +88,7 @@ quick_sort(void* params)
     pivot_index = (low + high) / 2; // Select pivot point
     pivot_index = partition(v, low, high, pivot_index); // Partition the vector
 
-    struct threadArgs args_l = {low, pivot_index - 1, (numThreads + (2 - 1)) / 2};  // The left side get to create half of the number of threads left
+    struct threadArgs args_l = {low, pivot_index - 1, numThreads / 2};  // The left side get to create half of the number of threads left
     struct threadArgs args_r = {pivot_index +1, high, numThreads - args_l.numThreads}; // The right side get to create rest of the threads left
 
 
